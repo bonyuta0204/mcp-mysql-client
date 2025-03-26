@@ -9,8 +9,6 @@ services:
       MYSQL_DATABASE: testdb
     ports:
       - "3306:3306"
-    volumes:
-      - ./pkg/integration/testdata:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptest"]
       interval: 5s

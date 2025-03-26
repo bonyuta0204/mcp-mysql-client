@@ -1,8 +1,8 @@
--- Create test tables and data for integration tests
+
+CREATE DATABASE IF NOT EXISTS testdb;
 
 USE testdb;
 
--- Create users table
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
