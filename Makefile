@@ -3,7 +3,7 @@ BIN  := $(DIST)/mcp-mysql-client
 GO   := go
 SRCS = $(shell find . -type f -name *.go)
 
-.PHONY: run build test test-unit test-integration docker-up docker-down
+.PHONY: run build test test-unit test-integration test-e2e docker-up docker-down
 
 
 
@@ -18,7 +18,7 @@ $(DIST):
 run: build
 	./$(BIN)
 
-test: test-unit test-integration
+test: test-unit test-integration test-e2e
 
 test-unit:
 	$(GO) test -v ./pkg/...
@@ -26,6 +26,10 @@ test-unit:
 # Run integration tests (requires MySQL)
 test-integration:
 	$(GO) test -v ./pkg/integration/...
+
+# Run end-to-end tests
+test-e2e: build
+	$(GO) test -v ./e2e/...
 
 # Start MySQL container for integration tests
 docker-up:
