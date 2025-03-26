@@ -3,6 +3,10 @@ CREATE DATABASE IF NOT EXISTS testdb;
 
 USE testdb;
 
+-- Drop tables if they exist
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS products;
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
@@ -35,6 +39,9 @@ INSERT INTO products (name, price, description) VALUES
 CREATE DATABASE IF NOT EXISTS seconddb;
 
 USE seconddb;
+
+-- Drop tables if they exist
+DROP TABLE IF EXISTS items;
 
 -- Create a table in the second database
 CREATE TABLE items (

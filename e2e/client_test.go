@@ -195,23 +195,37 @@ func setupDB() error {
 		Passwd: password,
 		Addr:   fmt.Sprintf("%s:%s", host, port),
 		Net:    "tcp",
+		DBName: "mysql", // Connect to the system database first
+		AllowNativePasswords: true,
+		Params: map[string]string{
+			"multiStatements": "true",
+		},
 	}
 
 	dsn := c.FormatDSN()
 
 	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("failed to open database connection: %w", err)
+	}
+	defer db.Close() // Ensure connection is closed when function returns
+
+	// Test the connection
+	err = db.Ping()
+	if err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
 
 	initSQL, err := os.ReadFile("./testdata/init.sql")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read init.sql file: %w", err)
 	}
 
+	// Execute the SQL statements
 	_, err = db.Exec(string(initSQL))
-
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to execute init SQL: %w", err)
 	}
 
 	return nil
-
 }
