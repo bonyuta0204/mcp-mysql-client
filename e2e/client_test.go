@@ -43,6 +43,9 @@ func TestJSONRPCInterface(t *testing.T) {
 
 	// Test query operations
 	testQueryOperations(t, ctx, client)
+
+	// Test special data types (NULL, integer, float)
+	testSpecialDataTypes(t, ctx, client)
 }
 
 // testClientInitialization tests the initialization of the client and listing of available tools
@@ -151,6 +154,59 @@ func testQueryOperations(t *testing.T, ctx context.Context, client *client.Stdio
 	logToolCallResult(t, queryCountRes)
 	assert.Contains(t, queryCountRes.Content[0].(mcp.TextContent).Text, "count")
 	assert.Contains(t, queryCountRes.Content[0].(mcp.TextContent).Text, "3")
+}
+
+// testSpecialDataTypes tests special data types (NULL, integer, float)
+func testSpecialDataTypes(t *testing.T, ctx context.Context, client *client.StdioMCPClient) {
+	// Test query - select from data_types table with NULL values
+	queryNullValuesRes := callTool(t, ctx, client, "query", map[string]interface{}{
+		"sql": "SELECT id, nullable_column FROM data_types WHERE nullable_column IS NULL",
+	})
+	logToolCallResult(t, queryNullValuesRes)
+	// Verify NULL values are properly displayed
+	assert.Contains(t, queryNullValuesRes.Content[0].(mcp.TextContent).Text, "NULL")
+	// Should have 2 rows with NULL values
+	assert.Contains(t, queryNullValuesRes.Content[0].(mcp.TextContent).Text, "1")
+	assert.Contains(t, queryNullValuesRes.Content[0].(mcp.TextContent).Text, "4")
+
+	// Test query - select integer values
+	queryIntegerValuesRes := callTool(t, ctx, client, "query", map[string]interface{}{
+		"sql": "SELECT id, integer_column FROM data_types ORDER BY integer_column",
+	})
+	logToolCallResult(t, queryIntegerValuesRes)
+	// Verify integer values are properly displayed
+	assert.Contains(t, queryIntegerValuesRes.Content[0].(mcp.TextContent).Text, "-100")
+	assert.Contains(t, queryIntegerValuesRes.Content[0].(mcp.TextContent).Text, "0")
+	assert.Contains(t, queryIntegerValuesRes.Content[0].(mcp.TextContent).Text, "42")
+	assert.Contains(t, queryIntegerValuesRes.Content[0].(mcp.TextContent).Text, "9999")
+
+	// Test query - select float values
+	queryFloatValuesRes := callTool(t, ctx, client, "query", map[string]interface{}{
+		"sql": "SELECT id, float_column, decimal_column FROM data_types ORDER BY float_column",
+	})
+	logToolCallResult(t, queryFloatValuesRes)
+	// Verify float values are properly displayed
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "-1.5")
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "0")
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "3.14")
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "123.456")
+	// Verify decimal values are properly displayed
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "-199.99")
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "0.00")
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "99.99")
+	assert.Contains(t, queryFloatValuesRes.Content[0].(mcp.TextContent).Text, "1000.01")
+
+	// Test query - direct NULL, integer and float literals
+	queryLiteralsRes := callTool(t, ctx, client, "query", map[string]interface{}{
+		"sql": "SELECT NULL as null_value, 123 as int_value, 45.67 as float_value",
+	})
+	logToolCallResult(t, queryLiteralsRes)
+	assert.Contains(t, queryLiteralsRes.Content[0].(mcp.TextContent).Text, "null_value")
+	assert.Contains(t, queryLiteralsRes.Content[0].(mcp.TextContent).Text, "NULL")
+	assert.Contains(t, queryLiteralsRes.Content[0].(mcp.TextContent).Text, "int_value")
+	assert.Contains(t, queryLiteralsRes.Content[0].(mcp.TextContent).Text, "123")
+	assert.Contains(t, queryLiteralsRes.Content[0].(mcp.TextContent).Text, "float_value")
+	assert.Contains(t, queryLiteralsRes.Content[0].(mcp.TextContent).Text, "45.67")
 }
 
 // connectToDatabase is a helper function to connect to a specific database

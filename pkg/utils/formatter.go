@@ -2,8 +2,56 @@ package utils
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 )
+
+func FormatQueryResultAsJson(rows *sql.Rows) (string, error) {
+	columns, err := rows.Columns()
+	if err != nil {
+		return "", fmt.Errorf("failed to get column names: %w", err)
+	}
+
+	var results = []map[string]string{}
+
+	for rows.Next() {
+		values := make([]sql.NullString, len(columns))
+		valuesPtrs := make([]interface{}, len(columns))
+		for i := range columns {
+			valuesPtrs[i] = &values[i]
+		}
+
+		// Scan the row into values
+		err := rows.Scan(valuesPtrs...)
+		if err != nil {
+			return "", fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		// Convert values to strings and add to result
+		result := make(map[string]string)
+		for i, col := range columns {
+			v := values[i]
+			if v.Valid {
+				result[col] = v.String
+			} else {
+				result[col] = "NULL"
+			}
+		}
+		results = append(results, result)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return "", fmt.Errorf("error iterating over rows: %w", err)
+	}
+
+	json, err := json.MarshalIndent(results, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal results to JSON: %w", err)
+	}
+
+	return string(json), nil
+}
 
 // FormatQueryResult formats the result of a SQL query as a markdown table
 func FormatQueryResult(rows *sql.Rows) (string, error) {

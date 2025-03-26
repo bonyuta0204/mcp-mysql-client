@@ -93,7 +93,7 @@ func queryHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore
 	defer rows.Close()
 
 	// Format the result
-	result, err := utils.FormatQueryResult(rows)
+	result, err := utils.FormatQueryResultAsJson(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func listDatabasesHandler(ctx context.Context, request mcp.CallToolRequest, ds d
 	defer rows.Close()
 
 	// Format the result
-	result, err := utils.FormatSimpleTable(rows, "Database")
+	result, err := utils.FormatQueryResultAsJson(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, ds data
 	defer rows.Close()
 
 	// Format the result
-	result, err := utils.FormatQueryResult(rows)
+	result, err := utils.FormatQueryResultAsJson(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func describeTableHandler(ctx context.Context, request mcp.CallToolRequest, ds d
 	defer rows.Close()
 
 	// Format the result
-	result, err := utils.FormatQueryResult(rows)
+	result, err := utils.FormatQueryResultAsJson(rows)
 	if err != nil {
 		return nil, err
 	}
