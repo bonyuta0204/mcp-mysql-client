@@ -7,6 +7,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,6 +45,8 @@ func TestJSONRPCInterface(t *testing.T) {
 	connectRes, err := client.CallTool(ctx, *connectRequest)
 	require.NoError(t, err)
 	logJsonResponse(t, connectRes)
+
+	assert.Equal(t, connectRes.Content[0].(mcp.TextContent).Text, "Successfully connected to MySQL at localhost:3306")
 
 }
 
