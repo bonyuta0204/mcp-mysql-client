@@ -67,7 +67,7 @@ func queryHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore
 	defer cancel()
 
 	// Execute query
-	rows, err := ds.Connection().QueryContext(ctx, sql)
+	rows, err := ds.QueryContext(ctx, sql)
 	if err != nil {
 		return nil, fmt.Errorf("query execution failed: %w", err)
 	}
@@ -94,7 +94,7 @@ func listDatabasesHandler(ctx context.Context, request mcp.CallToolRequest, ds d
 	defer cancel()
 
 	// Execute query to list databases
-	rows, err := ds.Connection().QueryContext(ctx, "SHOW DATABASES")
+	rows, err := ds.QueryContext(ctx, "SHOW DATABASES")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list databases: %w", err)
 	}
@@ -120,7 +120,7 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, ds data
 	database, ok := request.Params.Arguments["database"].(string)
 	if ok && database != "" {
 		// Use the specified database
-		_, err := ds.Connection().ExecContext(ctx, fmt.Sprintf("USE %s", database))
+		_, err := ds.ExecContext(ctx, fmt.Sprintf("USE %s", database))
 		if err != nil {
 			return nil, fmt.Errorf("failed to switch to database %s: %w", database, err)
 		}
@@ -131,7 +131,7 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, ds data
 	defer cancel()
 
 	// Execute query to list tables
-	rows, err := ds.Connection().QueryContext(ctx, "SHOW TABLES")
+	rows, err := ds.QueryContext(ctx, "SHOW TABLES")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tables: %w", err)
 	}
@@ -161,7 +161,7 @@ func describeTableHandler(ctx context.Context, request mcp.CallToolRequest, ds d
 	defer cancel()
 
 	// Execute query to describe table
-	rows, err := ds.Connection().QueryContext(ctx, fmt.Sprintf("DESCRIBE %s", table))
+	rows, err := ds.QueryContext(ctx, fmt.Sprintf("DESCRIBE %s", table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe table %s: %w", table, err)
 	}

@@ -68,6 +68,14 @@ func (d *MySQLDatastore) Connect(ctx context.Context, host, port, username, pass
 	return nil
 }
 
+func (d *MySQLDatastore) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	return d.DB.QueryContext(ctx, query, args...)
+}
+
+func (d *MySQLDatastore) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return d.DB.ExecContext(ctx, query, args...)
+}
+
 // Global instance of MySQLDatastore
 var DB *MySQLDatastore
 
