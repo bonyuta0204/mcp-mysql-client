@@ -1,4 +1,4 @@
-package db
+package datastore
 
 import (
 	"context"
@@ -9,33 +9,33 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type MySQLDB struct {
+type MySQLDatastore struct {
 	DB *sql.DB
 }
 
-func (d *MySQLDB) IsConnected() bool {
+func (d *MySQLDatastore) IsConnected() bool {
 	return d.DB != nil
 }
 
-func (d *MySQLDB) CheckConnection() error {
+func (d *MySQLDatastore) CheckConnection() error {
 	if !d.IsConnected() {
 		return fmt.Errorf("not connected to a database, use connect tool first")
 	}
 	return nil
 }
 
-func (d *MySQLDB) Close() error {
+func (d *MySQLDatastore) Close() error {
 	if d.DB != nil {
 		return d.DB.Close()
 	}
 	return nil
 }
 
-func (d *MySQLDB) Connection() *sql.DB {
+func (d *MySQLDatastore) Connection() *sql.DB {
 	return d.DB
 }
 
-func (d *MySQLDB) Connect(ctx context.Context, host, port, username, password, database string) error {
+func (d *MySQLDatastore) Connect(ctx context.Context, host, port, username, password, database string) error {
 	// Close existing connection if any
 	if d.IsConnected() {
 		d.Close()
@@ -68,4 +68,9 @@ func (d *MySQLDB) Connect(ctx context.Context, host, port, username, password, d
 	return nil
 }
 
-var DB *MySQLDB
+// Global instance of MySQLDatastore
+var DB *MySQLDatastore
+
+func init() {
+	DB = &MySQLDatastore{}
+}

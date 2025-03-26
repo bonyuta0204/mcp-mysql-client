@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	_ "github.com/bonyuta0204/mcp-mysql-client/pkg/datastore" // Import for side effects (init)
 	"github.com/bonyuta0204/mcp-mysql-client/pkg/handlers"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"

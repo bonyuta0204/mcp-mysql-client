@@ -5,37 +5,37 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bonyuta0204/mcp-mysql-client/pkg/db"
+	"github.com/bonyuta0204/mcp-mysql-client/pkg/datastore"
 	"github.com/bonyuta0204/mcp-mysql-client/pkg/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
 // ConnectHandler establishes a connection to the MySQL database
 func ConnectHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return withDBInstance(connectHandler, ctx, request, db.DB)
+	return withDatastoreInstance(connectHandler, ctx, request, datastore.DB)
 }
 
 func QueryHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return withDBInstance(queryHandler, ctx, request, db.DB)
+	return withDatastoreInstance(queryHandler, ctx, request, datastore.DB)
 }
 
 func ListDatabasesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return withDBInstance(listDatabasesHandler, ctx, request, db.DB)
+	return withDatastoreInstance(listDatabasesHandler, ctx, request, datastore.DB)
 }
 
 func ListTablesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return withDBInstance(listTablesHandler, ctx, request, db.DB)
+	return withDatastoreInstance(listTablesHandler, ctx, request, datastore.DB)
 }
 
 func DescribeTableHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return withDBInstance(describeTableHandler, ctx, request, db.DB)
+	return withDatastoreInstance(describeTableHandler, ctx, request, datastore.DB)
 }
 
-func withDBInstance(handler func(ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error), ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error) {
-	return handler(ctx, request, db)
+func withDatastoreInstance(handler func(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error), ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
+	return handler(ctx, request, ds)
 }
 
-func connectHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error) {
+func connectHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
 	// Extract connection parameters
 	host := request.Params.Arguments["host"].(string)
 	port := request.Params.Arguments["port"].(string)
@@ -44,7 +44,7 @@ func connectHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBIn
 	database := request.Params.Arguments["database"].(string)
 
 	// Connect to the database
-	err := db.Connect(ctx, host, port, username, password, database)
+	err := ds.Connect(ctx, host, port, username, password, database)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +53,9 @@ func connectHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBIn
 }
 
 // QueryHandler executes a SQL query
-func queryHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error) {
+func queryHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
 	// Check if connected to a database
-	if err := db.CheckConnection(); err != nil {
+	if err := ds.CheckConnection(); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func queryHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInte
 	defer cancel()
 
 	// Execute query
-	rows, err := db.Connection().QueryContext(ctx, sql)
+	rows, err := ds.Connection().QueryContext(ctx, sql)
 	if err != nil {
 		return nil, fmt.Errorf("query execution failed: %w", err)
 	}
@@ -83,9 +83,9 @@ func queryHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInte
 }
 
 // ListDatabasesHandler lists all databases
-func listDatabasesHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error) {
+func listDatabasesHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
 	// Check if connected to a database
-	if err := db.CheckConnection(); err != nil {
+	if err := ds.CheckConnection(); err != nil {
 		return nil, err
 	}
 
@@ -94,7 +94,7 @@ func listDatabasesHandler(ctx context.Context, request mcp.CallToolRequest, db d
 	defer cancel()
 
 	// Execute query to list databases
-	rows, err := db.Connection().QueryContext(ctx, "SHOW DATABASES")
+	rows, err := ds.Connection().QueryContext(ctx, "SHOW DATABASES")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list databases: %w", err)
 	}
@@ -110,9 +110,9 @@ func listDatabasesHandler(ctx context.Context, request mcp.CallToolRequest, db d
 }
 
 // ListTablesHandler lists all tables in a database
-func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error) {
+func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
 	// Check if connected to a database
-	if err := db.CheckConnection(); err != nil {
+	if err := ds.CheckConnection(); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, db db.D
 	database, ok := request.Params.Arguments["database"].(string)
 	if ok && database != "" {
 		// Use the specified database
-		_, err := db.Connection().ExecContext(ctx, fmt.Sprintf("USE %s", database))
+		_, err := ds.Connection().ExecContext(ctx, fmt.Sprintf("USE %s", database))
 		if err != nil {
 			return nil, fmt.Errorf("failed to switch to database %s: %w", database, err)
 		}
@@ -131,7 +131,7 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, db db.D
 	defer cancel()
 
 	// Execute query to list tables
-	rows, err := db.Connection().QueryContext(ctx, "SHOW TABLES")
+	rows, err := ds.Connection().QueryContext(ctx, "SHOW TABLES")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tables: %w", err)
 	}
@@ -147,9 +147,9 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, db db.D
 }
 
 // DescribeTableHandler describes a table structure
-func describeTableHandler(ctx context.Context, request mcp.CallToolRequest, db db.DBInterface) (*mcp.CallToolResult, error) {
+func describeTableHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
 	// Check if connected to a database
-	if err := db.CheckConnection(); err != nil {
+	if err := ds.CheckConnection(); err != nil {
 		return nil, err
 	}
 
@@ -161,7 +161,7 @@ func describeTableHandler(ctx context.Context, request mcp.CallToolRequest, db d
 	defer cancel()
 
 	// Execute query to describe table
-	rows, err := db.Connection().QueryContext(ctx, fmt.Sprintf("DESCRIBE %s", table))
+	rows, err := ds.Connection().QueryContext(ctx, fmt.Sprintf("DESCRIBE %s", table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe table %s: %w", table, err)
 	}

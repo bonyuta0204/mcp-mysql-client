@@ -1,11 +1,11 @@
-package db
+package datastore
 
 import (
 	"context"
 	"database/sql"
 )
 
-type DBInterface interface {
+type DatastoreInterface interface {
 	Connect(ctx context.Context, host, port, username, password, database string) error
 	Connection() *sql.DB
 	CheckConnection() error
