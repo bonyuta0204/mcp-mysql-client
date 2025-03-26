@@ -65,32 +65,6 @@ Run the unit tests with:
 make test-unit
 ```
 
-### Integration Tests
-
-The integration tests require a running MySQL instance. You can use the provided Docker Compose setup:
-
-```bash
-# Start MySQL container for testing
-make docker-up
-
-# Run integration tests
-make test-integration
-
-# Run all tests (unit + integration)
-make test
-
-# Stop MySQL container
-make docker-down
-```
-
-
-You can override these settings with environment variables:
-- TEST_MYSQL_HOST
-- TEST_MYSQL_PORT
-- TEST_MYSQL_USERNAME
-- TEST_MYSQL_PASSWORD
-- TEST_MYSQL_DATABASE
-
 ## MCP Tools
 
 ### Connect
