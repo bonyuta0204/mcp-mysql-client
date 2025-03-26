@@ -43,10 +43,11 @@ func (d *MySQLDatastore) Connect(ctx context.Context, host, port, username, pass
 
 	// Create DSN (Data Source Name)
 	c := mysql.Config{
-		User:   username,
-		Passwd: password,
-		Addr:   fmt.Sprintf("%s:%s", host, port),
-		Net:    "tcp",
+		User:                 username,
+		Passwd:               password,
+		Addr:                 fmt.Sprintf("%s:%s", host, port),
+		Net:                  "tcp",
+		AllowNativePasswords: true,
 	}
 
 	if len(database) > 0 {

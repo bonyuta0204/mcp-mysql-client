@@ -20,12 +20,18 @@ This project implements a MySQL client as an MCP server using Go. It allows AI m
 .
 ├── main.go              # Main application entry point
 ├── pkg/
-│   ├── db/              # Database connection management
-│   │   └── connection.go
+│   ├── datastore/       # Database connection management
+│   │   ├── interface.go # Interface for datastore operations
+│   │   └── mysql.go     # MySQL implementation
 │   ├── handlers/        # MCP tool handlers
-│   │   └── handlers.go
+│   │   ├── handlers.go
+│   │   └── handlers_test.go
+│   ├── integration/     # Integration tests with real MySQL
+│   │   ├── helper.go
+│   │   └── handlers_integration_test.go
 │   └── utils/           # Utility functions
 │       └── formatter.go
+├── docker-compose.yml   # Docker setup for testing
 └── README.md
 ```
 
@@ -48,6 +54,42 @@ go build
 # Run the server
 ./mcp-mysql-client
 ```
+
+## Testing
+
+### Unit Tests
+
+Run the unit tests with:
+
+```bash
+make test-unit
+```
+
+### Integration Tests
+
+The integration tests require a running MySQL instance. You can use the provided Docker Compose setup:
+
+```bash
+# Start MySQL container for testing
+make docker-up
+
+# Run integration tests
+make test-integration
+
+# Run all tests (unit + integration)
+make test
+
+# Stop MySQL container
+make docker-down
+```
+
+
+You can override these settings with environment variables:
+- TEST_MYSQL_HOST
+- TEST_MYSQL_PORT
+- TEST_MYSQL_USERNAME
+- TEST_MYSQL_PASSWORD
+- TEST_MYSQL_DATABASE
 
 ## MCP Tools
 
