@@ -86,7 +86,7 @@ func testDatabaseConnection(t *testing.T, ctx context.Context, client *client.St
 
 	// Test list databases
 	listDbRes := callTool(t, ctx, client, "list_databases", map[string]interface{}{})
-	logJsonResponse(t, listDbRes)
+	logToolCallResult(t, listDbRes)
 	assert.Contains(t, listDbRes.Content[0].(mcp.TextContent).Text, "testdb")
 	assert.Contains(t, listDbRes.Content[0].(mcp.TextContent).Text, "seconddb")
 }
@@ -95,7 +95,7 @@ func testDatabaseConnection(t *testing.T, ctx context.Context, client *client.St
 func testTableOperations(t *testing.T, ctx context.Context, client *client.StdioMCPClient) {
 	// Test list tables in default database
 	listTablesRes := callTool(t, ctx, client, "list_tables", map[string]interface{}{})
-	logJsonResponse(t, listTablesRes)
+	logToolCallResult(t, listTablesRes)
 	assert.Contains(t, listTablesRes.Content[0].(mcp.TextContent).Text, "users")
 	assert.Contains(t, listTablesRes.Content[0].(mcp.TextContent).Text, "products")
 
@@ -103,7 +103,7 @@ func testTableOperations(t *testing.T, ctx context.Context, client *client.Stdio
 	listTablesSecondDbRes := callTool(t, ctx, client, "list_tables", map[string]interface{}{
 		"database": "seconddb",
 	})
-	logJsonResponse(t, listTablesSecondDbRes)
+	logToolCallResult(t, listTablesSecondDbRes)
 	assert.Contains(t, listTablesSecondDbRes.Content[0].(mcp.TextContent).Text, "items")
 
 	// Switch back to testdb explicitly before continuing
@@ -113,7 +113,7 @@ func testTableOperations(t *testing.T, ctx context.Context, client *client.Stdio
 	describeTableRes := callTool(t, ctx, client, "describe_table", map[string]interface{}{
 		"table": "users",
 	})
-	logJsonResponse(t, describeTableRes)
+	logToolCallResult(t, describeTableRes)
 	assert.Contains(t, describeTableRes.Content[0].(mcp.TextContent).Text, "id")
 	assert.Contains(t, describeTableRes.Content[0].(mcp.TextContent).Text, "username")
 	assert.Contains(t, describeTableRes.Content[0].(mcp.TextContent).Text, "email")
@@ -125,7 +125,7 @@ func testQueryOperations(t *testing.T, ctx context.Context, client *client.Stdio
 	queryUsersRes := callTool(t, ctx, client, "query", map[string]interface{}{
 		"sql": "SELECT * FROM users",
 	})
-	logJsonResponse(t, queryUsersRes)
+	logToolCallResult(t, queryUsersRes)
 	assert.Contains(t, queryUsersRes.Content[0].(mcp.TextContent).Text, "username")
 	assert.Contains(t, queryUsersRes.Content[0].(mcp.TextContent).Text, "email")
 	assert.Contains(t, queryUsersRes.Content[0].(mcp.TextContent).Text, "user1@example.com")
@@ -136,7 +136,7 @@ func testQueryOperations(t *testing.T, ctx context.Context, client *client.Stdio
 	queryProductsRes := callTool(t, ctx, client, "query", map[string]interface{}{
 		"sql": "SELECT name, price FROM products ORDER BY price ASC",
 	})
-	logJsonResponse(t, queryProductsRes)
+	logToolCallResult(t, queryProductsRes)
 	assert.Contains(t, queryProductsRes.Content[0].(mcp.TextContent).Text, "name")
 	assert.Contains(t, queryProductsRes.Content[0].(mcp.TextContent).Text, "price")
 	assert.Contains(t, queryProductsRes.Content[0].(mcp.TextContent).Text, "Product A")
@@ -148,7 +148,7 @@ func testQueryOperations(t *testing.T, ctx context.Context, client *client.Stdio
 	queryCountRes := callTool(t, ctx, client, "query", map[string]interface{}{
 		"sql": "SELECT COUNT(*) as count FROM users",
 	})
-	logJsonResponse(t, queryCountRes)
+	logToolCallResult(t, queryCountRes)
 	assert.Contains(t, queryCountRes.Content[0].(mcp.TextContent).Text, "count")
 	assert.Contains(t, queryCountRes.Content[0].(mcp.TextContent).Text, "3")
 }
@@ -162,7 +162,7 @@ func connectToDatabase(t *testing.T, ctx context.Context, client *client.StdioMC
 		"password": "test",
 		"database": database,
 	})
-	logJsonResponse(t, connectRes)
+	logToolCallResult(t, connectRes)
 	return connectRes
 }
 
@@ -185,6 +185,12 @@ func logJsonResponse(t *testing.T, res interface{}) {
 
 	// Use a more visually distinct format for the output
 	t.Logf("\n┌─────────────── RESPONSE ───────────────┐\n%s\n└──────────────────────────────────────┘", string(jsonRes))
+}
+
+func logToolCallResult(t *testing.T, res *mcp.CallToolResult) {
+	// Use a more visually distinct format for the output
+	textContent := res.Content[0].(mcp.TextContent).Text
+	t.Logf("\n┌─────────────── RESPONSE ───────────────┐\n%s\n└──────────────────────────────────────┘", textContent)
 }
 
 // setupDB initializes the test database with sample data

@@ -1,7 +1,7 @@
 DIST := bin
 BIN  := $(DIST)/mcp-mysql-client
 GO   := go
-SRCS = $(shell find . -type f -name *.go)
+SRCS = $(shell find . -type f -name "*.go")
 
 .PHONY: run build test test-unit test-e2e docker-up docker-down
 

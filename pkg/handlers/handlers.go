@@ -136,13 +136,13 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, ds data
 	}
 
 	// Extract database name if provided
+	var query string
 	database, ok := request.Params.Arguments["database"].(string)
+
 	if ok && database != "" {
-		// Use the specified database
-		_, err := ds.ExecContext(ctx, fmt.Sprintf("USE %s", database))
-		if err != nil {
-			return nil, fmt.Errorf("failed to switch to database %s: %w", database, err)
-		}
+		query = fmt.Sprintf("SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_ROWS, TABLE_COMMENT FROM information_schema.tables WHERE TABLE_SCHEMA = '%s'", database)
+	} else {
+		query = "SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_ROWS, TABLE_COMMENT FROM information_schema.tables WHERE TABLE_SCHEMA NOT IN ('information_schema', 'performance_schema', 'sys', 'mysql')"
 	}
 
 	// Create context with timeout
@@ -150,14 +150,14 @@ func listTablesHandler(ctx context.Context, request mcp.CallToolRequest, ds data
 	defer cancel()
 
 	// Execute query to list tables
-	rows, err := ds.QueryContext(ctx, "SHOW TABLES")
+	rows, err := ds.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tables: %w", err)
 	}
 	defer rows.Close()
 
 	// Format the result
-	result, err := utils.FormatSimpleTable(rows, "Table")
+	result, err := utils.FormatQueryResult(rows)
 	if err != nil {
 		return nil, err
 	}
