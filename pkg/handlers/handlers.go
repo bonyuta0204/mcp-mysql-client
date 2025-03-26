@@ -37,11 +37,30 @@ func withDatastoreInstance(handler func(ctx context.Context, request mcp.CallToo
 
 func connectHandler(ctx context.Context, request mcp.CallToolRequest, ds datastore.DatastoreInterface) (*mcp.CallToolResult, error) {
 	// Extract connection parameters
-	host := request.Params.Arguments["host"].(string)
-	port := request.Params.Arguments["port"].(string)
-	username := request.Params.Arguments["username"].(string)
-	password := request.Params.Arguments["password"].(string)
-	database := request.Params.Arguments["database"].(string)
+	host, ok := request.Params.Arguments["host"].(string)
+	if !ok {
+		return nil, fmt.Errorf("host is required")
+	}
+
+	port, ok := request.Params.Arguments["port"].(string)
+	if !ok {
+		port = "3306"
+	}
+
+	username, ok := request.Params.Arguments["username"].(string)
+	if !ok {
+		return nil, fmt.Errorf("username is required")
+	}
+
+	password, ok := request.Params.Arguments["password"].(string)
+	if !ok {
+		return nil, fmt.Errorf("password is required")
+	}
+
+	database, ok := request.Params.Arguments["database"].(string)
+	if !ok {
+		database = ""
+	}
 
 	// Connect to the database
 	err := ds.Connect(ctx, host, port, username, password, database)

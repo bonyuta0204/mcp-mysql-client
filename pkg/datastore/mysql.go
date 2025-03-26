@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 )
 
 type MySQLDatastore struct {
@@ -42,11 +42,20 @@ func (d *MySQLDatastore) Connect(ctx context.Context, host, port, username, pass
 	}
 
 	// Create DSN (Data Source Name)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, database)
+	c := mysql.Config{
+		User:   username,
+		Passwd: password,
+		Addr:   fmt.Sprintf("%s:%s", host, port),
+		Net:    "tcp",
+	}
+
+	if len(database) > 0 {
+		c.DBName = database
+	}
 
 	// Open database connection
 	var err error
-	d.DB, err = sql.Open("mysql", dsn)
+	d.DB, err = sql.Open("mysql", c.FormatDSN())
 	if err != nil {
 		return fmt.Errorf("failed to open database connection: %w", err)
 	}
