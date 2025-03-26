@@ -15,3 +15,5 @@ $(BIN): $(DIST) $(SRCS)
 $(DIST):
 	@mkdir -p $(DIST)
 
+run: build
+	./$(BIN)
